@@ -65,21 +65,36 @@ func main() {
 		os.Exit(1)
 	}
 
-	r.GET("/todo", apiHandler.ListAllTodos)
-	r.POST("/todo", apiHandler.AddToDo)
-	r.PUT("/todo", apiHandler.UpdateToDo)
-	r.DELETE("/todo", apiHandler.DeleteAllToDo)
-	r.DELETE("/todo/:id", apiHandler.DeleteToDo)
-	r.GET("/todo/:id", apiHandler.GetToDo)
+	r.GET("/voters", apiHandler.GetAllVoterResources)
 
-	r.GET("/crash", apiHandler.CrashSim)
-	r.GET("/health", apiHandler.HealthCheck)
+	r.GET("/voters/:id", apiHandler.GetSingleVoterResource)
+	// Create a voters resource with id = :id, initialize the polls slice to an
+	// empty slice
+	r.POST("/voters/:id", apiHandler.AddVoter)
 
-	//We will now show a common way to version an API and add a new
-	//version of an API handler under /v2.  This new API will support
-	//a path parameter to search for todos based on a status
-	v2 := r.Group("/v2")
-	v2.GET("/todo", apiHandler.ListSelectTodos)
+	r.GET("/voters/:id/polls", apiHandler.GetVoterHistory)
+
+	r.GET("/voters/:id/polls/:pollid", apiHandler.GetVoterPollData)
+	// Look up the voter with id = :id, then add the poll with pollid = :pollid to
+	// the internal poll slice
+	// POST /voters/22/polls/3
+	// Does voter 22 exist, if not return 404 error; if voter 22 exists, add
+	// pollid 3 to the internal poll slice
+	// ***** Does voter 22 exist, if not, create voter 22 (WHICH ASSUMES ALL THE
+	// VOTER INFO IS IN THE PAYLOAD), then voter 22, then
+	// add pollid 3 to the NEW voter 22 resource. If not, follow above
+	r.POST("/voters/:id/polls/:pollid", apiHandler.AddVoterPollData)
+
+	r.GET("/voters/health", apiHandler.HealthCheck)
+
+	// Extra Credit
+	r.DELETE("/voters", apiHandler.DeleteAllVoters)
+
+	r.DELETE("/voters/:id", apiHandler.DeleteVoter)
+
+	r.DELETE("/voters/:id/polls/:pollid", apiHandler.DeletePoll)
+
+	r.PUT("/voters", apiHandler.UpdateVoter)
 
 	serverPath := fmt.Sprintf("%s:%d", hostFlag, portFlag)
 	r.Run(serverPath)
